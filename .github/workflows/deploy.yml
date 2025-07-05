@@ -38,6 +38,9 @@ jobs:
         with:
           path: './dist'
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v2
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
