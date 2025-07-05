@@ -280,6 +280,142 @@ export const playbooks: Playbook[] = [
       { metric: 'Tempo Medio Risoluzione Ticket', target: '-20%', frequency: 'Mensile' },
     ],
   },
+  {
+    id: 'esg-roadmap',
+    name: 'ESG Sustainability Roadmap',
+    objective: 'Definire e implementare una roadmap ESG triennale che migliori il rating di sostenibilità e riduca le emissioni Scope 1+2 del 20 % per una PMI di servizi.',
+    description: 'Percorso guidato per identificare tematiche materiali ESG, determinare baseline di emissioni e costruire un piano di iniziative sostenibili con KPI monitorabili.',
+    sector: 'Services',
+    problemCategory: 'Strategic',
+    frameworks: [
+      {
+        id: 'materiality-assessment',
+        name: 'ESG Materiality Assessment',
+        type: 'Analysis',
+        description: 'Identifica e priorizza i temi ESG più rilevanti per l’azienda e i suoi stakeholder.',
+        steps: [
+          'Mappa i principali stakeholder interni ed esterni (dipendenti, clienti, fornitori, comunità).',
+          'Costruisci una lista iniziale di temi ESG (es. carbon footprint, diversity, data privacy).',
+          'Somministra survey/ interviste per valutarne l’importanza percepita.',
+          'Crea matrice di materialità (asse x: importanza stakeholder, asse y: impatto business) e identifica top 5 temi.'
+        ],
+      },
+      {
+        id: 'carbon-baseline',
+        name: 'Carbon Footprint Baseline',
+        type: 'Analysis',
+        description: 'Calcola le emissioni Scope 1 & 2 attuali per definire obiettivi di riduzione.',
+        steps: [
+          'Raccogli dati consumo energia elettrica e combustibili ultimi 12 mesi.',
+          'Applica fattori di emissione standard (ISPRA/ GHG Protocol).',
+          'Calcola tonnellate CO2e totali e intensità (per FTE o fatturato).',
+          'Identifica fonti di emissione principali (>80 %).'
+        ],
+      },
+      {
+        id: 'esg-strategy-canvas',
+        name: 'ESG Strategy Canvas',
+        type: 'Strategy',
+        description: 'Visualizza le iniziative ESG su un canvas con impatto vs effort per prioritizzare.',
+        steps: [
+          'Elenca iniziative possibili (LED retrofit, smart working, codice etico fornitori, volontariato).',
+          'Valuta impatto (CO2e risparmiate, rating ESG) e effort (costo, complessità).',
+          'Posiziona ogni iniziativa sulla matrice 2×2 Quick Wins / Major Projects.',
+          'Seleziona roadmap triennale bilanciando quick wins e progetti strutturali.'
+        ],
+      }
+    ],
+    implementationPlan: {
+      phases: [
+        {
+          name: 'Assessment & Baseline',
+          duration: '2 mesi',
+          activities: ['Materiality workshop', 'Raccolta dati consumo energia', 'Audit processi HR e supply chain'],
+          deliverables: ['Matrice materialità', 'Carbon Footprint Report', 'Gap analysis ESG'],
+          stakeholders: ['Sustainability Manager', 'CFO'],
+          risks: [
+            {
+              riskName: 'Dati consumo incompleti',
+              probability: 3,
+              impact: 3,
+              mitigationStrategy: 'Coinvolgere facility manager, standardizzare template raccolta',
+              contingencyPlan: 'Stima proxy su fatture',
+              owner: 'Controller',
+            },
+          ],
+        },
+        {
+          name: 'Roadmap Design',
+          duration: '1 mese',
+          activities: ['ESG Strategy Canvas', 'Business case iniziative', 'Definizione target 2030'],
+          deliverables: ['Roadmap ESG 3 anni', 'Budget Capex/Opex', 'Policy sostenibilità'],
+          stakeholders: ['CEO', 'HR Manager'],
+          risks: [
+            {
+              riskName: 'Budget limitato',
+              probability: 4,
+              impact: 3,
+              mitigationStrategy: 'Prioritizzare quick wins, ricercare incentivi fiscali',
+              contingencyPlan: 'Scaglionare investimenti in ondate',
+              owner: 'CFO',
+            },
+          ],
+        },
+        {
+          name: 'Implementation & Monitoring',
+          duration: '6 mesi',
+          activities: ['Installazione LED', 'Programma Diversity & Inclusion', 'Formazione ESG awareness', 'Implementazione software reporting'],
+          deliverables: ['Rapporti trimestrali KPI', 'Comunicazione stakeholder'],
+          stakeholders: ['Operations Manager', 'Marketing'],
+          risks: [
+            {
+              riskName: 'Scarsa adozione cultura ESG',
+              probability: 3,
+              impact: 4,
+              mitigationStrategy: 'Campagne interne di sensibilizzazione',
+              contingencyPlan: 'Incentivi legati a performance ESG',
+              owner: 'HR Manager',
+            },
+          ],
+        },
+      ],
+      kpis: [
+        { metric: 'Emissioni Scope 1+2 (tCO2e)', target: '-20%', frequency: 'Annuale' },
+        { metric: 'Energy Intensity (kWh/FTE)', target: '-15%', frequency: 'Annuale' },
+        { metric: 'Waste Recycling Rate', target: '+25%', frequency: 'Semestrale' },
+        { metric: 'ESG Rating Score', target: '+10 punti', frequency: 'Annuale' },
+      ],
+    },
+    stakeholderTemplates: [
+      {
+        stakeholderName: 'Sustainability Manager',
+        influence: 8,
+        interest: 10,
+        engagement: 'Champion',
+        actions: ['Guidare assessment', 'Coordinare reportistica'],
+      },
+      {
+        stakeholderName: 'CFO',
+        influence: 9,
+        interest: 7,
+        engagement: 'Supporter',
+        actions: ['Allocare budget', 'Monitorare risparmi costi energia'],
+      },
+    ],
+    riskTemplates: [
+      {
+        riskName: 'Pressure di costi iniziali',
+        probability: 3,
+        impact: 4,
+        mitigationStrategy: 'Analisi ROI dettagliata, incentivi GSE',
+        contingencyPlan: 'Posticipo iniziative non critiche',
+        owner: 'Project Lead',
+      },
+    ],
+    kpis: [
+      { metric: 'Percentuale Fornitori con Codice Etico', target: '100%', frequency: 'Annuale' },
+    ],
+  }
 ];
 
 export default playbooks; 
