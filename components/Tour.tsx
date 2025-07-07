@@ -17,6 +17,122 @@ const Tour: React.FC<TourProps> = ({ run, steps, handleJoyrideCallback }) => {
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
 
+  const calculateOptimalPosition = (element: HTMLElement, placement: string) => {
+    const rect = element.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const tooltipWidth = 320; // Approximate tooltip width
+    const tooltipHeight = 200; // Approximate tooltip height
+    const margin = 20;
+
+    let top: string;
+    let left: string;
+    let transform: string;
+
+    // For body or center placement, always center
+    if (element === document.body || placement === 'center') {
+      return {
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
+      };
+    }
+
+    // Try the preferred placement first
+    switch (placement) {
+      case 'top':
+        if (rect.top > tooltipHeight + margin) {
+          top = `${rect.top - margin}px`;
+          left = `${rect.left + rect.width / 2}px`;
+          transform = 'translate(-50%, -100%)';
+        } else {
+          // Fallback to bottom
+          top = `${rect.bottom + margin}px`;
+          left = `${rect.left + rect.width / 2}px`;
+          transform = 'translate(-50%, 0)';
+        }
+        break;
+      
+      case 'bottom':
+        if (rect.bottom + tooltipHeight + margin < viewportHeight) {
+          top = `${rect.bottom + margin}px`;
+          left = `${rect.left + rect.width / 2}px`;
+          transform = 'translate(-50%, 0)';
+        } else {
+          // Fallback to top
+          top = `${rect.top - margin}px`;
+          left = `${rect.left + rect.width / 2}px`;
+          transform = 'translate(-50%, -100%)';
+        }
+        break;
+      
+      case 'left':
+        if (rect.left > tooltipWidth + margin) {
+          top = `${rect.top + rect.height / 2}px`;
+          left = `${rect.left - margin}px`;
+          transform = 'translate(-100%, -50%)';
+        } else {
+          // Fallback to right
+          top = `${rect.top + rect.height / 2}px`;
+          left = `${rect.right + margin}px`;
+          transform = 'translate(0, -50%)';
+        }
+        break;
+      
+      case 'right':
+        if (rect.right + tooltipWidth + margin < viewportWidth) {
+          top = `${rect.top + rect.height / 2}px`;
+          left = `${rect.right + margin}px`;
+          transform = 'translate(0, -50%)';
+        } else {
+          // Fallback to left
+          top = `${rect.top + rect.height / 2}px`;
+          left = `${rect.left - margin}px`;
+          transform = 'translate(-100%, -50%)';
+        }
+        break;
+      
+      default:
+        // Smart positioning based on element location
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        if (centerY < viewportHeight / 2) {
+          // Element in top half, place tooltip below
+          top = `${rect.bottom + margin}px`;
+          left = `${centerX}px`;
+          transform = 'translate(-50%, 0)';
+        } else {
+          // Element in bottom half, place tooltip above
+          top = `${rect.top - margin}px`;
+          left = `${centerX}px`;
+          transform = 'translate(-50%, -100%)';
+        }
+    }
+
+    // Ensure tooltip stays within viewport bounds
+    const tooltipLeft = parseFloat(left);
+    const tooltipTop = parseFloat(top);
+    
+    if (tooltipLeft < margin) {
+      left = `${margin}px`;
+      transform = transform.replace('translate(-50%', 'translate(0%');
+    } else if (tooltipLeft + tooltipWidth > viewportWidth - margin) {
+      left = `${viewportWidth - tooltipWidth - margin}px`;
+      transform = transform.replace('translate(-50%', 'translate(0%');
+    }
+    
+    if (tooltipTop < margin) {
+      top = `${margin}px`;
+      transform = transform.replace('translate(0, -50%)', 'translate(0, 0)').replace('translate(-50%, -100%)', 'translate(-50%, 0)');
+    } else if (tooltipTop + tooltipHeight > viewportHeight - margin) {
+      top = `${viewportHeight - tooltipHeight - margin}px`;
+      transform = transform.replace('translate(0, -50%)', 'translate(0, -100%)').replace('translate(-50%, 0)', 'translate(-50%, -100%)');
+    }
+
+    return { top, left, transform };
+  };
+
   useEffect(() => {
     if (!run) {
       setCurrentStep(0);
@@ -42,48 +158,15 @@ const Tour: React.FC<TourProps> = ({ run, steps, handleJoyrideCallback }) => {
 
       setTargetElement(element);
 
-      // Calculate position
-      if (element && element !== document.body) {
-        const rect = element.getBoundingClientRect();
+      if (element) {
         const placement = step.placement || 'bottom';
-        
-        let top: string;
-        let left: string;
-        let transform: string;
-
-        switch (placement) {
-          case 'top':
-            top = `${rect.top - 20}px`;
-            left = `${rect.left + rect.width / 2}px`;
-            transform = 'translate(-50%, -100%)';
-            break;
-          case 'bottom':
-            top = `${rect.bottom + 20}px`;
-            left = `${rect.left + rect.width / 2}px`;
-            transform = 'translate(-50%, 0)';
-            break;
-          case 'left':
-            top = `${rect.top + rect.height / 2}px`;
-            left = `${rect.left - 20}px`;
-            transform = 'translate(-100%, -50%)';
-            break;
-          case 'right':
-            top = `${rect.top + rect.height / 2}px`;
-            left = `${rect.right + 20}px`;
-            transform = 'translate(0, -50%)';
-            break;
-          default: // center
-            top = '50%';
-            left = '50%';
-            transform = 'translate(-50%, -50%)';
-        }
-
-        setTooltipPosition({ top, left, transform });
+        const position = calculateOptimalPosition(element, placement);
+        setTooltipPosition(position);
       } else {
-        // Fallback to center for body or missing elements
+        // Fallback to center for missing elements
         setTooltipPosition({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
       }
-    }, 100);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [run, currentStep, steps, handleJoyrideCallback]);

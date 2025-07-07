@@ -113,18 +113,22 @@ const App: React.FC = () => {
     {
       target: '#problem-definition',
       content: 'Start here by clearly defining your problem. Be specific and detailed - the more context you provide, the better the AI can help you.',
+      placement: 'bottom' as const,
     },
     {
       target: '#playbooks-panel',
       content: 'Need a quick start? Choose from our pre-built playbooks for common business scenarios like cost reduction, digital transformation, or ESG strategy.',
+      placement: 'bottom' as const,
     },
     {
       target: '#generate-suggestions',
       content: 'Once you\'ve defined your problem, click here to get AI-powered strategic analysis and framework recommendations.',
+      placement: 'top' as const,
     },
     {
       target: '#sessions-panel',
       content: 'Access all your saved sessions here. You can load previous work or delete old sessions to keep organized.',
+      placement: 'left' as const,
     },
     {
       target: 'body',
