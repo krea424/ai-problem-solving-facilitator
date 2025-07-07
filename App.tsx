@@ -135,9 +135,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (runTour) {
-      audioRef.current?.play().catch(error => {
-        console.error("Audio playback failed:", error);
-      });
+      // Try to play audio, but don't fail if it doesn't work
+      if (audioRef.current) {
+        audioRef.current.play().catch(error => {
+          console.log("Audio playback not available (this is normal in some browsers):", error);
+        });
+      }
     } else {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -468,7 +471,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans flex flex-col items-center p-4 sm:p-8">
-       <audio ref={audioRef} src="/tour.mp3" preload="auto" loop />
+       <audio ref={audioRef} src="/tour.mp3" preload="auto" loop onError={(e) => console.log("Audio file not found:", e)} />
       <div className="w-full max-w-7xl mx-auto">
         
         {showLandingPage ? (
