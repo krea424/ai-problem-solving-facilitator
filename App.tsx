@@ -16,6 +16,8 @@ import TargetIcon from './components/icons/TargetIcon';
 import PlaybooksPanel from './components/PlaybooksPanel';
 import { playbooks } from './data/playbooks';
 import type { Playbook } from './types';
+import Stepper from './components/Stepper';
+import UploadIcon from './components/icons/UploadIcon';
 
 interface SavedSession {
   id: number;
@@ -43,6 +45,13 @@ const ArrowRight: React.FC = () => (
 const App: React.FC = () => {
   const [problem, setProblem] = useState<string>('');
   const [context, setContext] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState(1);
+  const steps = [
+    "Definizione del Problema",
+    "Suggerimenti Iniziali AI",
+    "Guida tramite Framework",
+    "Soluzione Finale"
+  ];
   
   const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,6 +67,7 @@ const App: React.FC = () => {
   const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
   const [solutionError, setSolutionError] = useState<string | null>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
@@ -156,9 +166,51 @@ const App: React.FC = () => {
       setFrameworkGuidance(state.frameworkGuidance || null);
       setAnswers(state.answers || []);
       setFinalSolution(state.finalSolution || null);
+      
+      if (state.finalSolution) {
+        setCurrentStep(4);
+      } else if (state.frameworkGuidance) {
+        setCurrentStep(3);
+      } else if (state.aiResponse) {
+        setCurrentStep(2);
+      } else {
+        setCurrentStep(1);
+      }
+
        // Scroll to top to see the loaded state
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('text/')) {
+        alert('Please upload a text file (e.g., .txt, .md).');
+        return;
+    }
+
+    if (file.size > 1024 * 1024) { // 1MB limit
+        alert('File size exceeds 1MB limit.');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const text = e.target?.result as string;
+        setContext(text);
+    };
+    reader.onerror = (e) => {
+        console.error("Error reading file:", e);
+        alert("Failed to read the file.");
+    }
+    reader.readAsText(file);
+    
+    // Reset file input to allow uploading the same file again
+    event.target.value = '';
   };
 
   const handleDeleteSession = async (sessionId: number) => {
@@ -193,16 +245,19 @@ const App: React.FC = () => {
     setGuidanceError(null);
     setFinalSolution(null);
     setSolutionError(null);
+    setCurrentStep(1);
 
     try {
       const response = await fetchSuggestions(problem, context);
       setAiResponse(response);
+      setCurrentStep(2);
     } catch (e: unknown) {
       if (e instanceof Error) {
         setError(e.message);
       } else {
         setError('An unknown error occurred.');
       }
+      setCurrentStep(1);
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +272,7 @@ const App: React.FC = () => {
     setFrameworkGuidance(null);
     setFinalSolution(null);
     setSolutionError(null);
+    setCurrentStep(2);
     
     setTimeout(() => {
         guidanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -225,12 +281,14 @@ const App: React.FC = () => {
     try {
       const guidance = await fetchFrameworkGuidance(problem, context, framework);
       setFrameworkGuidance(guidance);
+      setCurrentStep(3);
     } catch(e: unknown) {
       if (e instanceof Error) {
         setGuidanceError(e.message);
       } else {
         setGuidanceError('An unknown error occurred while fetching guidance.');
       }
+      setCurrentStep(2);
     } finally {
       setIsGuidanceLoading(false);
     }
@@ -242,6 +300,7 @@ const App: React.FC = () => {
       setIsSolutionLoading(true);
       setSolutionError(null);
       setFinalSolution(null);
+      setCurrentStep(3);
 
       setTimeout(() => {
           solutionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -250,12 +309,14 @@ const App: React.FC = () => {
       try {
           const solution = await fetchFinalSolution(problem, context, activeFramework, answers);
           setFinalSolution(solution);
+          setCurrentStep(4);
       } catch (e: unknown) {
           if (e instanceof Error) {
               setSolutionError(e.message);
           } else {
               setSolutionError('An unknown error occurred while generating the solution.');
           }
+          setCurrentStep(3);
       } finally {
           setIsSolutionLoading(false);
       }
@@ -272,9 +333,19 @@ const App: React.FC = () => {
           </div>
         </header>
 
+        <Stepper steps={steps} currentStep={currentStep} />
+
         <main className="flex flex-col items-center w-full">
           {/* Playbooks Section */}
           <PlaybooksPanel playbooks={playbooks} onSelectPlaybook={handleSelectPlaybook} />
+          
+          <div className="w-full text-center mb-8 animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-gray-800">Fase 1: Definisci il Tuo Problema</h2>
+            <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+              Inizia descrivendo il problema centrale e fornendo il contesto rilevante. Questo aiuterà l'AI a comprendere a fondo la tua situazione e a generare suggerimenti pertinenti.
+            </p>
+          </div>
+          
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card title="Problem" icon={<LightBulbIcon />}>
               <textarea
@@ -284,7 +355,29 @@ const App: React.FC = () => {
                 className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
               />
             </Card>
-            <Card title="Context" icon={<InfoIcon />}>
+            <Card 
+              title="Context" 
+              icon={<InfoIcon />}
+              headerAction={
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept=".txt,.md,.text"
+                  />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 font-semibold rounded-lg border border-gray-200 hover:bg-gray-200 transition-all text-sm transform hover:scale-105 active:scale-95"
+                    title="Upload a text file for context"
+                  >
+                    <UploadIcon />
+                    Upload File
+                  </button>
+                </>
+              }
+            >
               <textarea
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
@@ -317,6 +410,12 @@ const App: React.FC = () => {
           {aiResponse && (
             <div className="w-full flex flex-col items-center animate-fade-in-up">
                 <ArrowDown />
+                <div className="w-full text-center my-8 animate-fade-in-up">
+                  <h2 className="text-2xl font-bold text-gray-800">Fase 2: Analizza i Suggerimenti Iniziali</h2>
+                  <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                    L'AI ha analizzato il tuo problema e ha generato una strategia, degli obiettivi e dei framework investigativi. Seleziona un framework per continuare.
+                  </p>
+                </div>
                 <div className="relative w-full">
                     <div className="absolute top-0 right-0">
                         <button 
@@ -388,6 +487,12 @@ const App: React.FC = () => {
                         {guidanceError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{guidanceError}</div>}
                         {frameworkGuidance && (
                             <div className="w-full max-w-4xl animate-fade-in-up">
+                               <div className="w-full text-center my-8 animate-fade-in-up">
+                                <h2 className="text-2xl font-bold text-gray-800">Fase 3: Approfondisci con il Framework Scelto</h2>
+                                <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                                  Rispondi alle domande chiave proposte dal framework. Le tue risposte guideranno l'AI nella formulazione della soluzione finale.
+                                </p>
+                              </div>
                                 <FrameworkGuidanceComponent 
                                     guidance={frameworkGuidance}
                                     answers={answers}
@@ -409,6 +514,12 @@ const App: React.FC = () => {
                          {solutionError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{solutionError}</div>}
                          {finalSolution && (
                             <div className="w-full max-w-4xl animate-fade-in-up">
+                                <div className="w-full text-center my-8 animate-fade-in-up">
+                                  <h2 className="text-2xl font-bold text-gray-800">Fase 4: Implementa la Soluzione Finale</h2>
+                                  <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                                    Questa è la soluzione strategica generata sulla base delle tue risposte. Usala come guida per implementare i cambiamenti necessari.
+                                  </p>
+                                </div>
                                 <FinalSolutionComponent solution={finalSolution} />
                             </div>
                         )}

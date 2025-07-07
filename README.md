@@ -3,15 +3,23 @@
 An interactive web application that leverages **Google Gemini** and **consulting-grade frameworks** to guide individuals or teams through a structured problem-solving journey. Tailor-made for small & medium-sized Italian service companies (PMI), the app combines AI insights, proven playbooks and collaboration utilities.
 
 ## Table of Contents
-1. [Key Features](#key-features)
-2. [Tech Stack](#tech-stack)
-3. [Getting Started](#getting-started)
-4. [Supabase Setup](#supabase-setup)
-5. [Playbooks Library](#playbooks-library)
-6. [Project Structure](#project-structure)
-7. [Roadmap](#roadmap)
-8. [Contributing](#contributing)
-9. [License](#license)
+- [AI Problem-Solving Facilitator](#ai-problem-solving-facilitator)
+  - [Table of Contents](#table-of-contents)
+  - [Key Features](#key-features)
+  - [Tech Stack](#tech-stack)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Environment Variables](#environment-variables)
+    - [Run Locally](#run-locally)
+    - [Build for Production](#build-for-production)
+  - [Supabase Setup](#supabase-setup)
+  - [Playbooks Library](#playbooks-library)
+  - [Project Structure](#project-structure)
+  - [Roadmap](#roadmap)
+  - [Contributing](#contributing)
+    - [Code Style](#code-style)
+  - [License](#license)
 
 ---
 
@@ -132,3 +140,61 @@ Pull Requests are welcome! Please follow these steps:
 
 ## License
 MIT © 2025 krea424
+
+Ecco cosa fa – passo per passo – il workflow che abbiamo salvato in  
+`.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]          # parte a ogni push su main
+  workflow_dispatch:          # oppure avvio manuale
+
+jobs:
+  build:
+    runs-on: ubuntu-latest    # usa il runner GitHub standard
+    steps:
+      - uses: actions/checkout@v4      # 1. clona il repo
+      - uses: actions/setup-node@v3    # 2. installa Node 18 e abilita cache npm
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci                    # 3. installa dipendenze
+      - run: npm run build             # 4. esegue il build Vite (output in dist/)
+      - uses: actions/upload-pages-artifact@v2   # 5. carica dist/ come artefatto
+        with:
+          path: './dist'
+      - uses: actions/configure-pages@v2         # 6. configura Pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v2   # 7. pubblica l’artefatto su GitHub Pages
+```
+
+Comandi chiave eseguiti:
+
+1. `npm ci` – installazione pacchetti (più veloce di `npm install` in CI).  
+2. `npm run build` – avvia Vite per produrre `/dist`.  
+3. L’artefatto viene caricato e poi distribuito dal passo `deploy`.
+
+Perché ancora non vedi il workflow in esecuzione:
+
+1. **Actions tab** – verifica se compaiono run falliti o in coda.  
+2. Se non c’è alcun run, fai un commit “vuoto” così:
+
+```bash
+<code_block_to_apply_changes_from>
+```
+
+3. Attendi ~1-2 minuti: il nuovo run dovrebbe apparire (job **build** ► **deploy**).  
+4. Quando è verde, in Settings → Pages apparirà l’URL pubblico.
+
+Non è necessario configurare self-hosted runners: i nostri job usano quelli GitHub (`runs-on: ubuntu-latest`).
