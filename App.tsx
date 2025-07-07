@@ -18,6 +18,16 @@ import { playbooks } from './data/playbooks';
 import type { Playbook } from './types';
 import Stepper from './components/Stepper';
 import UploadIcon from './components/icons/UploadIcon';
+import InputQualityMeter from './components/InputQualityMeter';
+import SuggestionsDashboard from './components/SuggestionsDashboard';
+
+const problemPlaceholders = [
+  "e.g., Our B2B SaaS startup is struggling with a high customer churn rate, especially within the first 3 months...",
+  "e.g., We need to develop a go-to-market strategy for a new sustainable fashion brand targeting millennials...",
+  "e.g., How can our non-profit organization increase volunteer engagement and attract more donations online?",
+  "e.g., Our e-commerce site has high traffic but a low conversion rate. We need to optimize the user journey...",
+  "e.g., As a traditional retail business, we need a digital transformation roadmap to stay competitive..."
+];
 
 interface SavedSession {
   id: number;
@@ -46,6 +56,7 @@ const App: React.FC = () => {
   const [problem, setProblem] = useState<string>('');
   const [context, setContext] = useState<string>('');
   const [currentStep, setCurrentStep] = useState(1);
+  const [placeholder, setPlaceholder] = useState(problemPlaceholders[0]);
   const steps = [
     "Definizione del Problema",
     "Suggerimenti Iniziali AI",
@@ -71,6 +82,19 @@ const App: React.FC = () => {
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
+
+  useEffect(() => {
+    // Cycle through placeholders only if the user hasn't started typing
+    if (problem) return;
+
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % problemPlaceholders.length;
+      setPlaceholder(problemPlaceholders[currentIndex]);
+    }, 3000); // Change placeholder every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [problem]);
 
   const handleSelectPlaybook = (playbook: Playbook) => {
     // Pre-compila Problem e Context con contenuti dal playbook per avviare rapidamente
@@ -351,9 +375,10 @@ const App: React.FC = () => {
               <textarea
                 value={problem}
                 onChange={(e) => setProblem(e.target.value)}
-                placeholder="Describe the core problem you're facing..."
+                placeholder={placeholder}
                 className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
               />
+              <InputQualityMeter text={problem} wordGoal={40} />
             </Card>
             <Card 
               title="Context" 
@@ -384,6 +409,7 @@ const App: React.FC = () => {
                 placeholder="Provide relevant context (e.g., industry, company size, target audience)..."
                 className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
               />
+              <InputQualityMeter text={context} wordGoal={30} />
             </Card>
           </div>
           
@@ -416,64 +442,22 @@ const App: React.FC = () => {
                     L'AI ha analizzato il tuo problema e ha generato una strategia, degli obiettivi e dei framework investigativi. Seleziona un framework per continuare.
                   </p>
                 </div>
+                 <div className="w-full max-w-6xl">
+                  <SuggestionsDashboard
+                    aiResponse={aiResponse}
+                    activeFramework={activeFramework}
+                    isGuidanceLoading={isGuidanceLoading}
+                    onFrameworkSelect={handleFrameworkSelect}
+                  />
+                </div>
                 <div className="relative w-full">
-                    <div className="absolute top-0 right-0">
+                    <div className="absolute top-0 right-0 -mr-28">
                         <button 
                             onClick={handleSaveSession}
                             className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95"
                         >
                             Save Session
                         </button>
-                    </div>
-                    <div className="w-full flex flex-col lg:flex-row items-stretch justify-center gap-8">
-                        <div className="w-full lg:w-1/2">
-                            <Card title="Suggested Frameworks" icon={<GridIcon />} className="h-full">
-                                <p className="text-sm text-gray-500 mb-4">Select a framework to get an actionable guide.</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {aiResponse.suggestedFrameworks.map((framework) => {
-                                        const isActive = framework === activeFramework;
-                                        return (
-                                            <button 
-                                                key={framework} 
-                                                onClick={() => handleFrameworkSelect(framework)}
-                                                disabled={isGuidanceLoading}
-                                                className={`
-                                                    text-center py-3 px-2 rounded-md font-medium shadow-sm 
-                                                    flex items-center justify-center transition-all duration-200 transform
-                                                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-400
-                                                    disabled:cursor-wait
-                                                    ${isActive 
-                                                        ? 'bg-blue-600 text-white ring-2 ring-blue-400' 
-                                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:shadow-md hover:-translate-y-1'
-                                                    }
-                                                    ${activeFramework && !isActive ? 'opacity-60 hover:opacity-100' : ''}
-                                                    ${isGuidanceLoading && !isActive ? 'opacity-50' : ''}
-                                                `}
-                                            >
-                                                {framework}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="hidden lg:flex items-center self-center h-full"><ArrowRight /></div>
-                        <div className="w-full lg:w-1/2 flex flex-col gap-8">
-                            <Card title="Master Strategy" icon={<BrainIcon />}>
-                                <ul className="space-y-3">
-                                    {aiResponse.masterStrategy.map((item, index) => (
-                                    <li key={index} className="flex items-start">
-                                        <span className="text-blue-500 mr-3 mt-1">&#8594;</span>
-                                        <span>{item}</span>
-                                    </li>
-                                    ))}
-                                </ul>
-                            </Card>
-                            <ArrowDown />
-                            <Card title="Final Goal" icon={<TargetIcon />}>
-                                <p className="text-lg text-green-600 font-medium">{aiResponse.finalGoal}</p>
-                            </Card>
-                        </div>
                     </div>
                 </div>
             </div>
