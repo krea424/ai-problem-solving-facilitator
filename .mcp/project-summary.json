@@ -1,0 +1,14 @@
+{
+  "projectName": "AI Problem-Solving Facilitator",
+  "description": "Applicazione web interattiva che guida utenti professionisti attraverso un processo strutturato di problem-solving utilizzando l'intelligenza artificiale. L'applicazione suggerisce framework, guida il pensiero critico e genera soluzioni finali concrete e personalizzate.",
+  "techStack": ["React", "Node.js", "Express", "Google Gemini Pro", "TailwindCSS"],
+  "status": "Versione 1.0 - MVP funzionante",
+  "businessGoals": [
+    "Differenziare il prodotto rispetto ai semplici chatbot AI",
+    "Dimostrare le capacità dell'AI generativa nel problem-solving strategico",
+    "Preparare la base per funzionalità premium a pagamento"
+  ],
+  "author": "Gemini Pro via Gemini CLI",
+  "version": "1.0",
+  "date": "2025-07-03"
+}
