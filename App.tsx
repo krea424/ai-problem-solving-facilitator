@@ -29,7 +29,6 @@ import InputQualityMeter from './components/InputQualityMeter';
 import SuggestionsDashboard from './components/SuggestionsDashboard';
 import ProblemComplexityScorer from './components/ProblemComplexityScorer';
 import Tour from './components/Tour';
-import type { Step } from 'react-joyride';
 import { fetchAISuggestedSolutions } from './services/geminiService';
 import AISuggestions from './components/AISuggestions';
 import type { AISuggestedSolution } from './types';
@@ -105,12 +104,11 @@ const App: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
 
-  const tourSteps: Step[] = [
+  const tourSteps = [
     {
       target: 'body',
       content: 'Welcome to the AI Problem-Solving Facilitator! This guided tour will show you the key features of the application.',
       placement: 'center' as const,
-      disableBeacon: true,
     },
     {
       target: '#problem-definition',
@@ -156,7 +154,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleJoyrideCallback = (data: any) => {
+  const handleJoyrideCallback = (data: { status: string }) => {
     const { status } = data;
     const finishedStatuses: string[] = ['finished', 'skipped'];
 
