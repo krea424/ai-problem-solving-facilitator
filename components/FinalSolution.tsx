@@ -9,29 +9,33 @@ interface FinalSolutionProps {
 const FinalSolution: React.FC<FinalSolutionProps> = ({ solution }) => {
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
-      <Card title={solution.title} className="bg-gray-800/50 border border-purple-500/30">
-        <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+        <div className="p-8 bg-slate-800 text-white">
+          <h2 className="text-3xl font-bold tracking-tight">{solution.title}</h2>
+          <p className="mt-2 text-slate-300 max-w-2xl">{solution.summary}</p>
+        </div>
+
+        <div className="p-8 space-y-8">
           <div>
-            <h4 className="text-lg font-semibold text-gray-200 mb-2">Executive Summary</h4>
-            <p className="text-gray-300 italic border-l-4 border-gray-600 pl-4">{solution.summary}</p>
-          </div>
-          <hr className="border-gray-700"/>
-          <div>
-            <h4 className="text-lg font-semibold text-purple-300 mb-4">Actionable Recommendations</h4>
-            <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Actionable Roadmap</h3>
+            <ol className="space-y-6">
               {solution.recommendations.map((rec, index) => (
-                <div key={index} className="bg-gray-900/50 p-4 rounded-lg">
-                  <h5 className="font-bold text-white mb-2">
-                    <span className="text-purple-300 mr-2">&#9670;</span>
-                    {rec.title}
-                  </h5>
-                  <p className="text-gray-300 pl-6">{rec.details}</p>
-                </div>
+                <li key={index} className="flex">
+                  <div className="flex-shrink-0">
+                    <span className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white font-bold rounded-full">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="ml-6">
+                    <h4 className="text-lg font-bold text-gray-900">{rec.title}</h4>
+                    <p className="mt-1 text-gray-600">{rec.details}</p>
+                  </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

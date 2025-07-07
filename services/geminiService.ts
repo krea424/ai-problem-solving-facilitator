@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { AIResponse, FrameworkGuidance, FinalSolution, Answer } from './types';
+import type { AIResponse, FrameworkGuidance, FinalSolution, Answer } from '../types';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 if (!API_KEY) {
@@ -34,7 +34,7 @@ export const fetchSuggestions = async (problem: string, context: string): Promis
     }
   `;
 
-  const result = await genAI.getGenerativeModel({ model: "gemini-pro" }).generateContent(prompt);
+  const result = await genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }).generateContent(prompt);
   const response = await result.response;
   const jsonString = response.text().replace(/```json|```/g, '').trim();
   const parsedResponse: AIResponse = JSON.parse(jsonString);
@@ -68,16 +68,17 @@ export const fetchFrameworkGuidance = async (problem: string, context:string, fr
     }
   `;
 
-  const result = await genAI.getGenerativeModel({ model: "gemini-pro" }).generateContent(prompt);
+  const result = await genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }).generateContent(prompt);
   const response = await result.response;
   const jsonString = response.text().replace(/```json|```/g, '').trim();
   const parsedResponse: FrameworkGuidance = JSON.parse(jsonString);
   
   return {
-    framework: parsedResponse.framework,
+    title: parsedResponse.title,
     description: parsedResponse.description,
     keyQuestions: parsedResponse.keyQuestions,
-    expectedOutcomes: parsedResponse.expectedOutcomes,
+    actionSteps: parsedResponse.actionSteps,
+    expectedOutcome: parsedResponse.expectedOutcome,
   };
 };
 
@@ -102,24 +103,20 @@ export const fetchFinalSolution = async (problem: string, context: string, frame
     {
       "title": "Final Strategic Roadmap",
       "summary": "A brief summary of the proposed solution.",
-      "actionableSteps": [
+      "recommendations": [
         {
-          "step": 1,
           "title": "Action Step 1 Title",
-          "description": "Detailed description of what to do in this step.",
-          "kpis": ["KPI 1", "KPI 2"]
+          "details": "Detailed description of what to do in this step."
         },
         {
-          "step": 2,
           "title": "Action Step 2 Title",
-          "description": "Detailed description of what to do in this step.",
-          "kpis": ["KPI 3", "KPI 4"]
+          "details": "Detailed description of what to do in this step."
         }
       ]
     }
   `;
 
-  const result = await genAI.getGenerativeModel({ model: "gemini-pro" }).generateContent(prompt);
+  const result = await genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }).generateContent(prompt);
   const response = await result.response;
   const jsonString = response.text().replace(/```json|```/g, '').trim();
   const parsedResponse: FinalSolution = JSON.parse(jsonString);
@@ -127,6 +124,6 @@ export const fetchFinalSolution = async (problem: string, context: string, frame
   return {
     title: parsedResponse.title,
     summary: parsedResponse.summary,
-    actionableSteps: parsedResponse.actionableSteps,
+    recommendations: parsedResponse.recommendations,
   };
 };
