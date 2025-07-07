@@ -13,7 +13,7 @@ interface SessionsPanelProps {
 }
 
 const SessionsPanel: React.FC<SessionsPanelProps> = ({ sessions, onLoadSession, onDeleteSession }) => {
-  const [expanded, setExpanded] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<boolean>(false);
   const [search, setSearch] = useState<string>('');
 
   const filtered = useMemo(() => {

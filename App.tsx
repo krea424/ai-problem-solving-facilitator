@@ -34,31 +34,6 @@ import { fetchAISuggestedSolutions } from './services/geminiService';
 import AISuggestions from './components/AISuggestions';
 import type { AISuggestedSolution } from './types';
 
-const tourSteps: Step[] = [
-  {
-    target: 'body',
-    content: 'Welcome to the AI Problem-Solving Facilitator! Let\'s take a quick tour.',
-    placement: 'center',
-    disableBeacon: true,
-  },
-  {
-    target: '#problem-definition',
-    content: 'Start by defining your problem and providing some context here. The more detail, the better!',
-  },
-  {
-      target: '#playbooks-panel',
-      content: 'Alternatively, you can select one of our pre-built playbooks to get started quickly.',
-  },
-  {
-    target: '#generate-suggestions',
-    content: 'Once you are ready, click here to get initial suggestions from the AI.',
-  },
-  {
-      target: '#sessions-panel',
-      content: 'You can save your progress at any time and load previous sessions from this panel.',
-  }
-];
-
 const problemPlaceholders = [
   "e.g., Our B2B SaaS startup is struggling with a high customer churn rate, especially within the first 3 months...",
   "e.g., We need to develop a go-to-market strategy for a new sustainable fashion brand targeting millennials...",
@@ -95,6 +70,8 @@ const App: React.FC = () => {
   const [context, setContext] = useState<string>('');
   const [currentStep, setCurrentStep] = useState(1);
   const [placeholder, setPlaceholder] = useState(problemPlaceholders[0]);
+  const [showLandingPage, setShowLandingPage] = useState(true);
+  
   const steps = [
     "Definizione del Problema",
     "Suggerimenti Iniziali AI",
@@ -128,6 +105,36 @@ const App: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
 
+  const tourSteps: Step[] = [
+    {
+      target: 'body',
+      content: 'Welcome to the AI Problem-Solving Facilitator! This guided tour will show you the key features of the application.',
+      placement: 'center' as const,
+      disableBeacon: true,
+    },
+    {
+      target: '#problem-definition',
+      content: 'Start here by clearly defining your problem. Be specific and detailed - the more context you provide, the better the AI can help you.',
+    },
+    {
+      target: '#playbooks-panel',
+      content: 'Need a quick start? Choose from our pre-built playbooks for common business scenarios like cost reduction, digital transformation, or ESG strategy.',
+    },
+    {
+      target: '#generate-suggestions',
+      content: 'Once you\'ve defined your problem, click here to get AI-powered strategic analysis and framework recommendations.',
+    },
+    {
+      target: '#sessions-panel',
+      content: 'Access all your saved sessions here. You can load previous work or delete old sessions to keep organized.',
+    },
+    {
+      target: 'body',
+      content: 'Great! You\'re ready to start. The AI will guide you through the rest of the process as you progress. You can always click "Start Tour" again for a refresher.',
+      placement: 'center' as const,
+    }
+  ];
+
   useEffect(() => {
     if (runTour) {
       audioRef.current?.play().catch(error => {
@@ -160,6 +167,14 @@ const App: React.FC = () => {
   
   const handleStartTour = () => {
     setRunTour(true);
+  };
+
+  const handleGetStarted = () => {
+    setShowLandingPage(false);
+    // Scroll to top after transition
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   useEffect(() => {
@@ -453,204 +468,265 @@ const App: React.FC = () => {
     }
   }, [problem, context, finalSolution]);
 
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans flex flex-col items-center p-4 sm:p-8">
        <audio ref={audioRef} src="/tour.mp3" preload="auto" loop />
       <div className="w-full max-w-7xl mx-auto">
         
-        <header className="text-center mb-12 relative">
-          <div className="inline-block">
-             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">AI Problem-Solving Facilitator</h1>
-          </div>
-          <button
-            onClick={handleStartTour}
-            className="absolute top-1/2 right-0 -translate-y-1/2 px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg border border-blue-200 hover:bg-blue-200 transition-all text-sm transform hover:scale-105 active:scale-95"
-            title="Start a tour of the application"
-          >
-            Start Tour
-          </button>
-        </header>
+        {showLandingPage ? (
+          // Landing Page
+          <div className="min-h-screen flex flex-col justify-center items-center text-center animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              {/* Hero Section */}
+              <div className="mb-12">
+                <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-gray-900 mb-6">
+                  AI Problem-Solving
+                  <span className="block text-blue-600">Facilitator</span>
+                </h1>
+                <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                  Transform complex business challenges into actionable solutions with AI-powered strategic frameworks
+                </p>
+              </div>
 
-        <Stepper steps={steps} currentStep={currentStep} />
-
-        <Tour run={runTour} steps={tourSteps} handleJoyrideCallback={handleJoyrideCallback} />
-
-        <main className="flex flex-col items-center w-full">
-          {/* Playbooks Section */}
-          <div id="playbooks-panel">
-            <PlaybooksPanel playbooks={playbooks} onSelectPlaybook={handleSelectPlaybook} />
-          </div>
-          
-          <div className="w-full text-center mb-8 animate-fade-in-up" id="problem-definition">
-            <h2 className="text-2xl font-bold text-gray-800">Fase 1: Definisci il Tuo Problema</h2>
-            <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
-              Inizia descrivendo il problema centrale e fornendo il contesto rilevante. Questo aiuterà l'AI a comprendere a fondo la tua situazione e a generare suggerimenti pertinenti.
-            </p>
-          </div>
-          
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card title="Problem" icon={<LightBulbIcon />}>
-              <textarea
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
-                placeholder={placeholder}
-                className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-              />
-              <InputQualityMeter text={problem} wordGoal={40} />
-            </Card>
-            <Card 
-              title="Context" 
-              icon={<InfoIcon />}
-              headerAction={
-                <>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept=".txt,.md,.text"
-                  />
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 font-semibold rounded-lg border border-gray-200 hover:bg-gray-200 transition-all text-sm transform hover:scale-105 active:scale-95"
-                    title="Upload a text file for context"
-                  >
-                    <UploadIcon />
-                    Upload File
-                  </button>
-                </>
-              }
-            >
-              <textarea
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder="Provide relevant context (e.g., industry, company size, target audience)..."
-                className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-              />
-              <InputQualityMeter text={context} wordGoal={30} />
-            </Card>
-          </div>
-          
-          <div className="flex items-center justify-center gap-4 my-8" id="generate-suggestions">
-            <button
-              onClick={handleGenerate}
-              disabled={isLoading}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95"
-            >
-              {isLoading ? 'Thinking...' : 'Generate Suggestions'}
-            </button>
-            <button
-              onClick={handleLoadExample}
-              disabled={isLoading}
-              className="px-4 py-2 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 transition-all duration-300 transform hover:scale-105 active:scale-95"
-            >
-              Try an example
-            </button>
-          </div>
-          
-          {isLoading && <Loader />}
-          {error && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-2xl text-center animate-fade-in-up">{error}</div>}
-
-          {aiResponse && (
-            <div className="w-full flex flex-col items-center animate-fade-in-up">
-                <ArrowDown />
-                <div className="w-full text-center my-8 animate-fade-in-up">
-                  <h2 className="text-2xl font-bold text-gray-800">Fase 2: Analizza i Suggerimenti Iniziali</h2>
-                  <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
-                    L'AI ha analizzato il tuo problema e ha generato una strategia, degli obiettivi e dei framework investigativi. Seleziona un framework per continuare.
-                  </p>
+              {/* Benefits */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <BrainIcon className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">AI-Powered Analysis</h3>
+                  <p className="text-gray-600">Get intelligent insights and strategic recommendations tailored to your specific problem</p>
                 </div>
-                 <div className="w-full max-w-6xl">
-                  <SuggestionsDashboard
-                    aiResponse={aiResponse}
-                    activeFramework={activeFramework}
-                    isGuidanceLoading={isGuidanceLoading}
-                    onFrameworkSelect={handleFrameworkSelect}
-                  />
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <TargetIcon className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Proven Frameworks</h3>
+                  <p className="text-gray-600">Follow industry-standard methodologies like 5 Whys, SWOT Analysis, and more</p>
                 </div>
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <GridIcon className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Actionable Results</h3>
+                  <p className="text-gray-600">Receive concrete implementation plans with KPIs and risk mitigation strategies</p>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="mb-8">
+                <button
+                  onClick={handleGetStarted}
+                  className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-xl rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+                >
+                  Start Solving Your Problem →
+                </button>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="text-sm text-gray-500">
+                <p>Trusted by business professionals worldwide</p>
+                <p className="mt-2">No registration required • Free to use</p>
+              </div>
             </div>
-          )}
+          </div>
+        ) : (
+          // Main Application
+          <>
+            <header className="text-center mb-12 relative">
+              <div className="inline-block">
+                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">AI Problem-Solving Facilitator</h1>
+              </div>
+              <button
+                onClick={handleStartTour}
+                className="absolute top-1/2 right-0 -translate-y-1/2 px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg border border-blue-200 hover:bg-blue-200 transition-all text-sm transform hover:scale-105 active:scale-95"
+                title="Start a tour of the application"
+              >
+                Start Tour
+              </button>
+            </header>
 
-            <div ref={guidanceRef} className="w-full mt-4">
-                {(isGuidanceLoading || guidanceError || frameworkGuidance) && (
-                    <div className="flex flex-col items-center">
-                        <ArrowDown />
-                        {isGuidanceLoading && <Loader />}
-                        {guidanceError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{guidanceError}</div>}
-                        {frameworkGuidance && (
-                            <div className="w-full max-w-4xl animate-fade-in-up">
-                               <div className="w-full text-center my-8 animate-fade-in-up">
-                                <h2 className="text-2xl font-bold text-gray-800">Fase 3: Approfondisci con il Framework Scelto</h2>
-                                <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
-                                  Rispondi alle domande chiave proposte dal framework. Le tue risposte guideranno l'AI nella formulazione della soluzione finale.
-                                </p>
-                              </div>
-                                <FrameworkGuidanceComponent 
-                                    guidance={frameworkGuidance}
-                                    answers={answers}
-                                    onAnswerChange={handleAnswerChange}
-                                    onGenerateSolution={handleGenerateSolution}
-                                    isLoading={isSolutionLoading}
-                                />
-                            </div>
-                        )}
+            <Stepper steps={steps} currentStep={currentStep} />
+
+            <Tour run={runTour} steps={tourSteps} handleJoyrideCallback={handleJoyrideCallback} />
+
+            <main className="flex flex-col items-center w-full">
+              {/* Playbooks Section */}
+              <div id="playbooks-panel">
+                <PlaybooksPanel playbooks={playbooks} onSelectPlaybook={handleSelectPlaybook} />
+              </div>
+              
+              <div className="w-full text-center mb-8 animate-fade-in-up" id="problem-definition">
+                <h2 className="text-2xl font-bold text-gray-800">Fase 1: Definisci il Tuo Problema</h2>
+                <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                  Inizia descrivendo il problema centrale e fornendo il contesto rilevante. Questo aiuterà l'AI a comprendere a fondo la tua situazione e a generare suggerimenti pertinenti.
+                </p>
+              </div>
+              
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card title="Problem" icon={<LightBulbIcon />}>
+                  <textarea
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                  />
+                  <InputQualityMeter text={problem} wordGoal={40} />
+                </Card>
+                <Card 
+                  title="Context" 
+                  icon={<InfoIcon />}
+                  headerAction={
+                    <>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".txt,.md,.text"
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 font-semibold rounded-lg border border-gray-200 hover:bg-gray-200 transition-all text-sm transform hover:scale-105 active:scale-95"
+                        title="Upload a text file for context"
+                      >
+                        <UploadIcon />
+                        Upload File
+                      </button>
+                    </>
+                  }
+                >
+                  <textarea
+                    value={context}
+                    onChange={(e) => setContext(e.target.value)}
+                    placeholder="Provide relevant context (e.g., industry, company size, target audience)..."
+                    className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                  />
+                  <InputQualityMeter text={context} wordGoal={30} />
+                </Card>
+              </div>
+              
+              <div className="flex items-center justify-center gap-4 my-8" id="generate-suggestions">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isLoading}
+                  className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95"
+                >
+                  {isLoading ? 'Thinking...' : 'Generate Suggestions'}
+                </button>
+                <button
+                  onClick={handleLoadExample}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                >
+                  Try an example
+                </button>
+              </div>
+              
+              {isLoading && <Loader />}
+              {error && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-2xl text-center animate-fade-in-up">{error}</div>}
+
+              {aiResponse && (
+                <div className="w-full flex flex-col items-center animate-fade-in-up">
+                    <ArrowDown />
+                    <div className="w-full text-center my-8 animate-fade-in-up">
+                      <h2 className="text-2xl font-bold text-gray-800">Fase 2: Analizza i Suggerimenti Iniziali</h2>
+                      <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                        L'AI ha analizzato il tuo problema e ha generato una strategia, degli obiettivi e dei framework investigativi. Seleziona un framework per continuare.
+                      </p>
                     </div>
-                )}
-            </div>
+                     <div className="w-full max-w-6xl" id="suggestions-dashboard">
+                      <SuggestionsDashboard
+                        aiResponse={aiResponse}
+                        activeFramework={activeFramework}
+                        isGuidanceLoading={isGuidanceLoading}
+                        onFrameworkSelect={handleFrameworkSelect}
+                      />
+                    </div>
+                </div>
+              )}
 
-            <div ref={solutionRef} className="w-full mt-4">
-                 {(isSolutionLoading || solutionError || finalSolution) && (
-                    <div className="flex flex-col items-center">
-                         <ArrowDown />
-                         {isSolutionLoading && <Loader />}
-                         {solutionError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{solutionError}</div>}
-                         {finalSolution && (
-                            <div className="w-full max-w-4xl animate-fade-in-up">
-                                <div className="w-full text-center my-8 animate-fade-in-up">
-                                  <h2 className="text-2xl font-bold text-gray-800">Fase 4: Implementa la Soluzione Finale</h2>
-                                  <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
-                                    Questa è la soluzione strategica generata sulla base delle tue risposte. Usala come guida per implementare i cambiamenti necessari.
-                                  </p>
-                                </div>
-                                <FinalSolutionComponent solution={finalSolution} />
-                                <div className="w-full text-center mt-12">
-                                    <button 
-                                        onClick={handleSaveSession}
-                                        className="px-8 py-4 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95 text-lg"
-                                    >
-                                        Save Session to Dashboard
-                                    </button>
-                                </div>
-
-                                {!aiSuggestedSolutions && !isSuggestionsLoading && (
-                                  <div className="w-full text-center mt-12">
-                                    <button
-                                      onClick={handleFetchAISuggestions}
-                                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
-                                    >
-                                      Get AI Recommendations
-                                    </button>
+                <div ref={guidanceRef} className="w-full mt-4">
+                    {(isGuidanceLoading || guidanceError || frameworkGuidance) && (
+                        <div className="flex flex-col items-center">
+                            <ArrowDown />
+                            {isGuidanceLoading && <Loader />}
+                            {guidanceError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{guidanceError}</div>}
+                            {frameworkGuidance && (
+                                <div className="w-full max-w-4xl animate-fade-in-up" id="framework-guidance">
+                                   <div className="w-full text-center my-8 animate-fade-in-up">
+                                    <h2 className="text-2xl font-bold text-gray-800">Fase 3: Approfondisci con il Framework Scelto</h2>
+                                    <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                                      Rispondi alle domande chiave proposte dal framework. Le tue risposte guideranno l'AI nella formulazione della soluzione finale.
+                                    </p>
                                   </div>
-                                )}
+                                    <FrameworkGuidanceComponent 
+                                        guidance={frameworkGuidance}
+                                        answers={answers}
+                                        onAnswerChange={handleAnswerChange}
+                                        onGenerateSolution={handleGenerateSolution}
+                                        isLoading={isSolutionLoading}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
 
-                                {isSuggestionsLoading && <div className="mt-8"><Loader /></div>}
-                                {suggestionsError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up mt-8">{suggestionsError}</div>}
-                                {aiSuggestedSolutions && <AISuggestions suggestions={aiSuggestedSolutions} />}
-                            </div>
-                        )}
-                    </div>
-                 )}
+                <div ref={solutionRef} className="w-full mt-4">
+                     {(isSolutionLoading || solutionError || finalSolution) && (
+                        <div className="flex flex-col items-center">
+                             <ArrowDown />
+                             {isSolutionLoading && <Loader />}
+                             {solutionError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up">{solutionError}</div>}
+                             {finalSolution && (
+                                <div className="w-full max-w-4xl animate-fade-in-up" id="final-solution">
+                                    <div className="w-full text-center my-8 animate-fade-in-up">
+                                      <h2 className="text-2xl font-bold text-gray-800">Fase 4: Implementa la Soluzione Finale</h2>
+                                      <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
+                                        Questa è la soluzione strategica generata sulla base delle tue risposte. Usala come guida per implementare i cambiamenti necessari.
+                                      </p>
+                                    </div>
+                                    <FinalSolutionComponent solution={finalSolution} />
+                                    <div className="w-full text-center mt-12" id="save-session">
+                                        <button 
+                                            onClick={handleSaveSession}
+                                            className="px-8 py-4 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95 text-lg"
+                                        >
+                                            Save Session to Dashboard
+                                        </button>
+                                    </div>
+
+                                    {!aiSuggestedSolutions && !isSuggestionsLoading && (
+                                      <div className="w-full text-center mt-12" id="ai-recommendations">
+                                        <button
+                                          onClick={handleFetchAISuggestions}
+                                          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                                        >
+                                          Get AI Recommendations
+                                        </button>
+                                      </div>
+                                    )}
+
+                                    {isSuggestionsLoading && <div className="mt-8"><Loader /></div>}
+                                    {suggestionsError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up mt-8">{suggestionsError}</div>}
+                                    {aiSuggestedSolutions && <AISuggestions suggestions={aiSuggestedSolutions} />}
+                                </div>
+                            )}
+                        </div>
+                     )}
+                </div>
+            </main>
+            
+            <div id="sessions-panel">
+                <SessionsPanel 
+                  sessions={savedSessions}
+                  onLoadSession={handleLoadSession}
+                  onDeleteSession={handleDeleteSession}
+                />
             </div>
-        </main>
-        
-        <div id="sessions-panel">
-            <SessionsPanel 
-              sessions={savedSessions}
-              onLoadSession={handleLoadSession}
-              onDeleteSession={handleDeleteSession}
-            />
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -84,7 +84,9 @@ const FrameworkGuidance: React.FC<FrameworkGuidanceProps> = ({ guidance, answers
             </form>
         </Card>
         {isFiveWhys && allQuestionsAnswered && (
-            <ProblemComplexityScorer fiveWhysData={fiveWhysData} />
+            <div id="complexity-scorer">
+                <ProblemComplexityScorer fiveWhysData={fiveWhysData} />
+            </div>
         )}
     </div>
   );
