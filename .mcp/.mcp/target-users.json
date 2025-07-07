@@ -1,0 +1,42 @@
+{
+  "targetUsers": [
+    {
+      "type": "Startup Founders & Manager",
+      "needs": [
+        "Definire strategie di crescita",
+        "Risolvere problemi legati al churn",
+        "Valutare opzioni operative complesse"
+      ]
+    },
+    {
+      "type": "Product Manager",
+      "needs": [
+        "Analizzare feedback utenti",
+        "Definire roadmap",
+        "Gestire ostacoli e criticità di sviluppo"
+      ]
+    },
+    {
+      "type": "Consulenti e Analisti",
+      "needs": [
+        "Strutturare rapidamente l’analisi iniziale di un problema",
+        "Accelerare il lavoro con modelli di riferimento",
+        "Fornire piani d’azione chiari ai clienti"
+      ]
+    },
+    {
+      "type": "Team Leader",
+      "needs": [
+        "Facilitare sessioni di brainstorming strutturato",
+        "Migliorare la qualità del processo decisionale di gruppo"
+      ]
+    },
+    {
+      "type": "Studenti e Professionisti",
+      "needs": [
+        "Sviluppare capacità di pensiero critico",
+        "Imparare metodologie di problem-solving strutturato"
+      ]
+    }
+  ]
+}
