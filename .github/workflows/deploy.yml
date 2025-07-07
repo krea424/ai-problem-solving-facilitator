@@ -25,7 +25,7 @@ jobs:
           node-version: 18
           cache: 'npm'
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --force
       - run: npm run build
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

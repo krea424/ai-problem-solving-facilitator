@@ -29,6 +29,7 @@ import InputQualityMeter from './components/InputQualityMeter';
 import SuggestionsDashboard from './components/SuggestionsDashboard';
 import ProblemComplexityScorer from './components/ProblemComplexityScorer';
 import Tour from './components/Tour';
+import type { Step } from 'react-joyride';
 import { fetchAISuggestedSolutions } from './services/geminiService';
 import AISuggestions from './components/AISuggestions';
 import type { AISuggestedSolution } from './types';
@@ -104,31 +105,28 @@ const App: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
 
-  const tourSteps = [
+  const tourSteps: Step[] = [
     {
       target: 'body',
       content: 'Welcome to the AI Problem-Solving Facilitator! This guided tour will show you the key features of the application.',
       placement: 'center' as const,
+      disableBeacon: true,
     },
     {
       target: '#problem-definition',
       content: 'Start here by clearly defining your problem. Be specific and detailed - the more context you provide, the better the AI can help you.',
-      placement: 'bottom' as const,
     },
     {
       target: '#playbooks-panel',
       content: 'Need a quick start? Choose from our pre-built playbooks for common business scenarios like cost reduction, digital transformation, or ESG strategy.',
-      placement: 'bottom' as const,
     },
     {
       target: '#generate-suggestions',
       content: 'Once you\'ve defined your problem, click here to get AI-powered strategic analysis and framework recommendations.',
-      placement: 'top' as const,
     },
     {
       target: '#sessions-panel',
       content: 'Access all your saved sessions here. You can load previous work or delete old sessions to keep organized.',
-      placement: 'left' as const,
     },
     {
       target: 'body',
@@ -166,7 +164,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleJoyrideCallback = (data: { status: string }) => {
+  const handleJoyrideCallback = (data: any) => {
     const { status } = data;
     const finishedStatuses: string[] = ['finished', 'skipped'];
 

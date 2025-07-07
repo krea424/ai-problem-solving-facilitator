@@ -11,8 +11,10 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.50.3",
+    "@types/react-joyride": "^2.0.2",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-joyride": "^2.9.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
