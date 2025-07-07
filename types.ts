@@ -1,15 +1,14 @@
 export interface AIResponse {
-  suggestedFrameworks: string[];
-  masterStrategy: string[];
-  finalGoal: string;
+  problemAnalysis: string;
+  strategicGoals: string[];
+  recommendedFrameworks: Framework[];
 }
 
 export interface FrameworkGuidance {
   title: string;
   description:string;
   keyQuestions: string[];
-  actionSteps: string[];
-  expectedOutcome: string;
+  framework: Framework;
 }
 
 export type Answer = {
@@ -113,6 +112,7 @@ export interface Playbook {
   id: string;
   name: string;
   objective: string;
+  context: string;
   description: string;
   sector: IndustryVertical;
   problemCategory: ProblemCategory;
@@ -121,4 +121,51 @@ export interface Playbook {
   stakeholderTemplates: StakeholderAnalysis[];
   riskTemplates: RiskAssessment[];
   kpis: ImplementationPlan['kpis'];
+}
+
+export interface ComplexityScore {
+  causeAmbiguity: {
+    score: number;
+    reasoning: string;
+  };
+  interconnections: {
+    score: number;
+    reasoning: string;
+  };
+  businessImpact: {
+    score: number;
+    reasoning: string;
+  };
+  strategicRecommendations: string[];
+}
+
+export interface FiveWhysStep {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+export interface FiveWhys {
+  id: string;
+  name: string;
+  type: 'Analysis';
+  description: string;
+  steps: FiveWhysStep[];
+}
+
+export interface AISuggestedSolution {
+  solutionTitle: string;
+  solutionDescription: string;
+  kpi: {
+    metric: string;
+    target: string;
+  };
+  alert: {
+    risk: string;
+    mitigation: string;
+  };
+  quote: {
+    text: string;
+    author: string;
+  };
 }

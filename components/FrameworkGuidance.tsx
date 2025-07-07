@@ -1,6 +1,7 @@
-import React from 'react';
-import type { FrameworkGuidance as FrameworkGuidanceType, Answer } from '../types';
+import React, { useMemo } from 'react';
+import type { FrameworkGuidance as FrameworkGuidanceType, Answer, FiveWhys } from '../types';
 import Card from './Card';
+import ProblemComplexityScorer from './ProblemComplexityScorer';
 
 interface FrameworkGuidanceProps {
   guidance: FrameworkGuidanceType;
@@ -19,6 +20,25 @@ const FrameworkGuidance: React.FC<FrameworkGuidanceProps> = ({ guidance, answers
       onGenerateSolution(answers);
     }
   };
+
+  const isFiveWhys = guidance.framework.name === '5 Whys';
+
+  const fiveWhysData: FiveWhys | null = useMemo(() => {
+    if (!isFiveWhys) return null;
+    
+    return {
+      id: guidance.framework.id,
+      name: guidance.framework.name,
+      type: 'Analysis',
+      description: guidance.framework.description,
+      steps: guidance.keyQuestions.map((q, i) => ({
+        id: i + 1,
+        question: q,
+        answer: answers[i]?.answer || '',
+      })),
+    };
+  }, [isFiveWhys, guidance, answers]);
+
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -63,6 +83,9 @@ const FrameworkGuidance: React.FC<FrameworkGuidanceProps> = ({ guidance, answers
                 </div>
             </form>
         </Card>
+        {isFiveWhys && allQuestionsAnswered && (
+            <ProblemComplexityScorer fiveWhysData={fiveWhysData} />
+        )}
     </div>
   );
 };

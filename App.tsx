@@ -1,6 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { fetchSuggestions, fetchFrameworkGuidance, fetchFinalSolution } from './services/geminiService';
-import type { AIResponse, FrameworkGuidance, FinalSolution, Answer } from './types';
+import type {
+  AIResponse,
+  Framework,
+  FrameworkGuidance,
+  FinalSolution,
+  Answer,
+  Playbook,
+  FiveWhys,
+} from './types';
 import Card from './components/Card';
 import Loader from './components/Loader';
 import FrameworkGuidanceComponent from './components/FrameworkGuidance';
@@ -15,11 +23,41 @@ import BrainIcon from './components/icons/BrainIcon';
 import TargetIcon from './components/icons/TargetIcon';
 import PlaybooksPanel from './components/PlaybooksPanel';
 import { playbooks } from './data/playbooks';
-import type { Playbook } from './types';
 import Stepper from './components/Stepper';
 import UploadIcon from './components/icons/UploadIcon';
 import InputQualityMeter from './components/InputQualityMeter';
 import SuggestionsDashboard from './components/SuggestionsDashboard';
+import ProblemComplexityScorer from './components/ProblemComplexityScorer';
+import Tour from './components/Tour';
+import type { Step } from 'react-joyride';
+import { fetchAISuggestedSolutions } from './services/geminiService';
+import AISuggestions from './components/AISuggestions';
+import type { AISuggestedSolution } from './types';
+
+const tourSteps: Step[] = [
+  {
+    target: 'body',
+    content: 'Welcome to the AI Problem-Solving Facilitator! Let\'s take a quick tour.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    target: '#problem-definition',
+    content: 'Start by defining your problem and providing some context here. The more detail, the better!',
+  },
+  {
+      target: '#playbooks-panel',
+      content: 'Alternatively, you can select one of our pre-built playbooks to get started quickly.',
+  },
+  {
+    target: '#generate-suggestions',
+    content: 'Once you are ready, click here to get initial suggestions from the AI.',
+  },
+  {
+      target: '#sessions-panel',
+      content: 'You can save your progress at any time and load previous sessions from this panel.',
+  }
+];
 
 const problemPlaceholders = [
   "e.g., Our B2B SaaS startup is struggling with a high customer churn rate, especially within the first 3 months...",
@@ -79,9 +117,50 @@ const App: React.FC = () => {
   const [solutionError, setSolutionError] = useState<string | null>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const [aiSuggestedSolutions, setAiSuggestedSolutions] = useState<AISuggestedSolution[] | null>(null);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
+
+  const [runTour, setRunTour] = useState(false);
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
+
+  useEffect(() => {
+    if (runTour) {
+      audioRef.current?.play().catch(error => {
+        console.error("Audio playback failed:", error);
+      });
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  }, [runTour]);
+
+  useEffect(() => {
+    const tourHasRun = localStorage.getItem('tourHasRun');
+    if (!tourHasRun) {
+      setRunTour(true);
+      localStorage.setItem('tourHasRun', 'true');
+    }
+  }, []);
+
+  const handleJoyrideCallback = (data: any) => {
+    const { status } = data;
+    const finishedStatuses: string[] = ['finished', 'skipped'];
+
+    if (finishedStatuses.includes(status)) {
+      setRunTour(false);
+    }
+  };
+  
+  const handleStartTour = () => {
+    setRunTour(true);
+  };
 
   useEffect(() => {
     // Cycle through placeholders only if the user hasn't started typing
@@ -99,7 +178,7 @@ const App: React.FC = () => {
   const handleSelectPlaybook = (playbook: Playbook) => {
     // Pre-compila Problem e Context con contenuti dal playbook per avviare rapidamente
     setProblem(playbook.objective);
-    setContext(`${playbook.sector} • ${playbook.problemCategory} • ${playbook.name}`);
+    setContext(playbook.context);
 
     // Scorri verso il form per concentrare l'attenzione
     setTimeout(() => {
@@ -287,10 +366,17 @@ const App: React.FC = () => {
     }
   }, [problem, context]);
 
-  const handleFrameworkSelect = useCallback(async (framework: string) => {
-    if (framework === activeFramework || isGuidanceLoading) return;
+  const handleFrameworkSelect = useCallback(async (frameworkName: string) => {
+    if (frameworkName === activeFramework || isGuidanceLoading) return;
+
+    const selectedFrameworkObject = aiResponse?.recommendedFrameworks.find(f => f.name === frameworkName);
+    if (!selectedFrameworkObject) {
+        console.error(`Framework "${frameworkName}" not found.`);
+        setGuidanceError(`An error occurred. The selected framework could not be found.`);
+        return;
+    }
     
-    setActiveFramework(framework);
+    setActiveFramework(frameworkName);
     setIsGuidanceLoading(true);
     setGuidanceError(null);
     setFrameworkGuidance(null);
@@ -303,7 +389,7 @@ const App: React.FC = () => {
     }, 100);
 
     try {
-      const guidance = await fetchFrameworkGuidance(problem, context, framework);
+      const guidance = await fetchFrameworkGuidance(problem, context, selectedFrameworkObject);
       setFrameworkGuidance(guidance);
       setCurrentStep(3);
     } catch(e: unknown) {
@@ -316,7 +402,7 @@ const App: React.FC = () => {
     } finally {
       setIsGuidanceLoading(false);
     }
-  }, [problem, context, activeFramework, isGuidanceLoading]);
+  }, [problem, context, activeFramework, isGuidanceLoading, aiResponse]);
 
   const handleGenerateSolution = useCallback(async (answers: Answer[]) => {
       if (!activeFramework) return;
@@ -346,24 +432,57 @@ const App: React.FC = () => {
       }
   }, [problem, context, activeFramework]);
 
+  const handleFetchAISuggestions = useCallback(async () => {
+    if (!finalSolution) return;
+    
+    setIsSuggestionsLoading(true);
+    setSuggestionsError(null);
+    setAiSuggestedSolutions(null);
+
+    try {
+      const suggestions = await fetchAISuggestedSolutions(problem, context, finalSolution);
+      setAiSuggestedSolutions(suggestions);
+    } catch (e) {
+      if (e instanceof Error) {
+        setSuggestionsError(e.message);
+      } else {
+        setSuggestionsError('An unknown error occurred while fetching AI suggestions.');
+      }
+    } finally {
+      setIsSuggestionsLoading(false);
+    }
+  }, [problem, context, finalSolution]);
+
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans flex flex-col items-center p-4 sm:p-8">
+       <audio ref={audioRef} src="/tour.mp3" preload="auto" loop />
       <div className="w-full max-w-7xl mx-auto">
         
-        <header className="text-center mb-12">
+        <header className="text-center mb-12 relative">
           <div className="inline-block">
              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">AI Problem-Solving Facilitator</h1>
           </div>
+          <button
+            onClick={handleStartTour}
+            className="absolute top-1/2 right-0 -translate-y-1/2 px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg border border-blue-200 hover:bg-blue-200 transition-all text-sm transform hover:scale-105 active:scale-95"
+            title="Start a tour of the application"
+          >
+            Start Tour
+          </button>
         </header>
 
         <Stepper steps={steps} currentStep={currentStep} />
 
+        <Tour run={runTour} steps={tourSteps} handleJoyrideCallback={handleJoyrideCallback} />
+
         <main className="flex flex-col items-center w-full">
           {/* Playbooks Section */}
-          <PlaybooksPanel playbooks={playbooks} onSelectPlaybook={handleSelectPlaybook} />
+          <div id="playbooks-panel">
+            <PlaybooksPanel playbooks={playbooks} onSelectPlaybook={handleSelectPlaybook} />
+          </div>
           
-          <div className="w-full text-center mb-8 animate-fade-in-up">
+          <div className="w-full text-center mb-8 animate-fade-in-up" id="problem-definition">
             <h2 className="text-2xl font-bold text-gray-800">Fase 1: Definisci il Tuo Problema</h2>
             <p className="text-md text-gray-600 mt-2 max-w-3xl mx-auto">
               Inizia descrivendo il problema centrale e fornendo il contesto rilevante. Questo aiuterà l'AI a comprendere a fondo la tua situazione e a generare suggerimenti pertinenti.
@@ -413,7 +532,7 @@ const App: React.FC = () => {
             </Card>
           </div>
           
-          <div className="flex items-center justify-center gap-4 my-8">
+          <div className="flex items-center justify-center gap-4 my-8" id="generate-suggestions">
             <button
               onClick={handleGenerate}
               disabled={isLoading}
@@ -449,16 +568,6 @@ const App: React.FC = () => {
                     isGuidanceLoading={isGuidanceLoading}
                     onFrameworkSelect={handleFrameworkSelect}
                   />
-                </div>
-                <div className="relative w-full">
-                    <div className="absolute top-0 right-0 -mr-28">
-                        <button 
-                            onClick={handleSaveSession}
-                            className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95"
-                        >
-                            Save Session
-                        </button>
-                    </div>
                 </div>
             </div>
           )}
@@ -505,6 +614,29 @@ const App: React.FC = () => {
                                   </p>
                                 </div>
                                 <FinalSolutionComponent solution={finalSolution} />
+                                <div className="w-full text-center mt-12">
+                                    <button 
+                                        onClick={handleSaveSession}
+                                        className="px-8 py-4 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95 text-lg"
+                                    >
+                                        Save Session to Dashboard
+                                    </button>
+                                </div>
+
+                                {!aiSuggestedSolutions && !isSuggestionsLoading && (
+                                  <div className="w-full text-center mt-12">
+                                    <button
+                                      onClick={handleFetchAISuggestions}
+                                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                                    >
+                                      Get AI Recommendations
+                                    </button>
+                                  </div>
+                                )}
+
+                                {isSuggestionsLoading && <div className="mt-8"><Loader /></div>}
+                                {suggestionsError && <div className="text-red-500 bg-red-100 border border-red-200 p-4 rounded-md w-full max-w-4xl text-center animate-fade-in-up mt-8">{suggestionsError}</div>}
+                                {aiSuggestedSolutions && <AISuggestions suggestions={aiSuggestedSolutions} />}
                             </div>
                         )}
                     </div>
@@ -512,11 +644,13 @@ const App: React.FC = () => {
             </div>
         </main>
         
-        <SessionsPanel 
-          sessions={savedSessions}
-          onLoadSession={handleLoadSession}
-          onDeleteSession={handleDeleteSession}
-        />
+        <div id="sessions-panel">
+            <SessionsPanel 
+              sessions={savedSessions}
+              onLoadSession={handleLoadSession}
+              onDeleteSession={handleDeleteSession}
+            />
+        </div>
       </div>
     </div>
   );

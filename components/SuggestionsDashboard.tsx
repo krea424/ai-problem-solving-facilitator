@@ -1,5 +1,5 @@
 import React from 'react';
-import type { AIResponse } from '../types';
+import type { AIResponse, Framework } from '../types';
 import Card from './Card';
 import GridIcon from './icons/GridIcon';
 import BrainIcon from './icons/BrainIcon';
@@ -9,7 +9,7 @@ interface SuggestionsDashboardProps {
   aiResponse: AIResponse;
   activeFramework: string | null;
   isGuidanceLoading: boolean;
-  onFrameworkSelect: (framework: string) => void;
+  onFrameworkSelect: (frameworkName: string) => void;
 }
 
 const SuggestionsDashboard: React.FC<SuggestionsDashboardProps> = ({
@@ -20,18 +20,28 @@ const SuggestionsDashboard: React.FC<SuggestionsDashboardProps> = ({
 }) => {
   return (
     <div className="w-full bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Master Strategy */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Problem Analysis & Goals */}
         <div className="lg:col-span-2">
-          <Card title="Master Strategy" icon={<BrainIcon />} className="h-full bg-gray-50 border-gray-200">
-            <ul className="space-y-4">
-              {aiResponse.masterStrategy.map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="text-blue-600 mr-3 mt-1">&#10140;</span>
-                  <span className="text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
+          <Card title="Strategic Analysis" icon={<BrainIcon />} className="h-full bg-gray-50 border-gray-200">
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">Problem Analysis</h4>
+                <p className="text-gray-700">{aiResponse.problemAnalysis}</p>
+              </div>
+              <hr />
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-3">Strategic Goals</h4>
+                <ul className="space-y-3">
+                  {aiResponse.strategicGoals?.map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <TargetIcon className="w-5 h-5 text-blue-600 mr-3 mt-1 shrink-0" />
+                      <span className="text-gray-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </Card>
         </div>
 
@@ -39,12 +49,12 @@ const SuggestionsDashboard: React.FC<SuggestionsDashboardProps> = ({
         <div className="lg:col-span-1">
           <Card title="Select Framework" icon={<GridIcon />} className="h-full">
             <div className="flex flex-col space-y-3">
-              {aiResponse.suggestedFrameworks.map((framework) => {
-                const isActive = framework === activeFramework;
+              {aiResponse.recommendedFrameworks?.map((framework: Framework) => {
+                const isActive = framework.name === activeFramework;
                 return (
                   <button
-                    key={framework}
-                    onClick={() => onFrameworkSelect(framework)}
+                    key={framework.id}
+                    onClick={() => onFrameworkSelect(framework.name)}
                     disabled={isGuidanceLoading}
                     className={`
                       text-left py-3 px-4 rounded-lg font-semibold shadow-md 
@@ -58,7 +68,10 @@ const SuggestionsDashboard: React.FC<SuggestionsDashboardProps> = ({
                       ${activeFramework && !isActive ? 'opacity-60 hover:opacity-100' : ''}
                     `}
                   >
-                    <span>{framework}</span>
+                    <div className="flex-1">
+                      <p className="font-bold">{framework.name}</p>
+                      <p className="text-sm font-normal mt-1 opacity-80">{framework.description}</p>
+                    </div>
                     {isActive && (
                       <span className="ml-2 transition-opacity duration-300">
                         {isGuidanceLoading ? '...' : '✓'}
@@ -69,27 +82,6 @@ const SuggestionsDashboard: React.FC<SuggestionsDashboardProps> = ({
               })}
             </div>
           </Card>
-        </div>
-        
-        {/* Final Goal */}
-        <div className="lg:col-span-2">
-           <div className="h-full bg-slate-800 rounded-xl shadow-lg border border-slate-700 flex flex-col p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-              <div className="flex items-center mb-4">
-                <div className="mr-3 text-blue-400">
-                  <TargetIcon className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-100">Final Goal</h3>
-              </div>
-              <div className="flex-grow flex flex-col justify-center text-center">
-                <p className="text-3xl lg:text-4xl text-white font-bold tracking-tight leading-tight">
-                  {aiResponse.finalGoal}
-                </p>
-                <p className="text-sm text-slate-400 mt-4 max-w-md mx-auto">
-                  This is the ultimate, measurable objective your strategy aims to achieve.
-                </p>
-              </div>
-           </div>
         </div>
       </div>
     </div>
