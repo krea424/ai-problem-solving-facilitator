@@ -1,0 +1,38 @@
+{
+  "functionalRequirements": [
+    {
+      "id": "FR1",
+      "description": "Input del problema e del contesto tramite textarea"
+    },
+    {
+      "id": "FR2",
+      "description": "Generazione suggerimenti AI (framework, strategia, obiettivo finale)"
+    },
+    {
+      "id": "FR3",
+      "description": "Selezione e guida interattiva del framework scelto"
+    },
+    {
+      "id": "FR4",
+      "description": "Generazione finale della soluzione AI con piano d’azione"
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR1",
+      "description": "Interfaccia utente intuitiva e responsiva (desktop e mobile)"
+    },
+    {
+      "id": "NFR2",
+      "description": "Performance veloce nelle risposte AI e caricamenti"
+    },
+    {
+      "id": "NFR3",
+      "description": "Messaggi di errore chiari per input mancanti o errori API"
+    },
+    {
+      "id": "NFR4",
+      "description": "Gestione sicura delle chiavi API AI, non visibili lato client"
+    }
+  ]
+}
