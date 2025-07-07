@@ -137,9 +137,14 @@ const App: React.FC = () => {
     if (runTour) {
       // Try to play audio, but don't fail if it doesn't work
       if (audioRef.current) {
-        audioRef.current.play().catch(error => {
-          console.log("Audio playback not available (this is normal in some browsers):", error);
-        });
+        // Wait a bit for the audio to be ready
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.play().catch(error => {
+              console.log("Audio playback not available (this is normal in some browsers):", error);
+            });
+          }
+        }, 200);
       }
     } else {
       if (audioRef.current) {
