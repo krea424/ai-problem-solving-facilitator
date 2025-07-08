@@ -7,6 +7,32 @@ if (!API_KEY) {
 }
 const genAI = new GoogleGenerativeAI(API_KEY);
 
+const MAX_RETRIES = 3;
+
+async function generateContentWithRetry(model: any, prompt: string) {
+  let retries = 0;
+  while (retries < MAX_RETRIES) {
+    try {
+      const result = await model.generateContent(prompt);
+      return result;
+    } catch (error: any) {
+      if (error.message.includes('503')) {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          throw new Error(`The model is overloaded. Please try again later. Failed after ${MAX_RETRIES} retries.`);
+        }
+        const delay = Math.pow(2, retries) * 1000 + Math.random() * 1000;
+        console.warn(`Model is overloaded. Retrying in ${Math.round(delay / 1000)}s...`);
+        await new Promise(res => setTimeout(res, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("generateContentWithRetry failed after all retries.");
+}
+
+
 export async function fetchSuggestions(problem: string, context: string): Promise<AIResponse> {
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
@@ -43,7 +69,7 @@ export async function fetchSuggestions(problem: string, context: string): Promis
     }
   `;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateContentWithRetry(model, prompt);
   const response = await result.response;
   const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
   
@@ -123,7 +149,7 @@ export async function fetchFrameworkGuidance(problem: string, context: string, f
     }
   `;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateContentWithRetry(model, prompt);
   const response = await result.response;
   const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
 
@@ -175,7 +201,8 @@ export const fetchFinalSolution = async (problem: string, context: string, frame
     }
   `;
 
-  const result = await genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }).generateContent(prompt);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  const result = await generateContentWithRetry(model, prompt);
   const response = await result.response;
   const jsonString = response.text().replace(/```json|```/g, '').trim();
   const parsedResponse: FinalSolution = JSON.parse(jsonString);
@@ -237,7 +264,7 @@ export async function getComplexityScore(analysisText: string): Promise<Complexi
     }
   `;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateContentWithRetry(model, prompt);
   const response = await result.response;
   const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
   
@@ -286,7 +313,7 @@ export async function fetchAISuggestedSolutions(problem: string, context: string
       ]
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await generateContentWithRetry(model, prompt);
     const response = await result.response;
     const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
     
