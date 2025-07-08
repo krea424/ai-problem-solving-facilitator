@@ -1,38 +1,39 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { fetchSuggestions, fetchFrameworkGuidance, fetchFinalSolution } from './services/geminiService';
+import { fetchSuggestions, fetchFrameworkGuidance, fetchFinalSolution, fetchAISuggestedSolutions } from './services/geminiService';
 import type {
   AIResponse,
-  Framework,
   FrameworkGuidance,
   FinalSolution,
   Answer,
   Playbook,
-  FiveWhys,
+  AISuggestedSolution
 } from './types';
+import { supabase } from './services/supabaseClient';
+import type { Step } from 'react-joyride';
+
+// Components
 import Card from './components/Card';
 import Loader from './components/Loader';
+import Tour from './components/Tour';
+import Stepper from './components/Stepper';
+import AISuggestions from './components/AISuggestions';
+import SessionsPanel from './components/SessionsPanel';
+import PlaybooksPanel from './components/PlaybooksPanel';
+import InputQualityMeter from './components/InputQualityMeter';
+import SuggestionsDashboard from './components/SuggestionsDashboard';
 import FrameworkGuidanceComponent from './components/FrameworkGuidance';
 import FinalSolutionComponent from './components/FinalSolution';
-import SessionsPanel from './components/SessionsPanel';
-import { supabase } from './services/supabaseClient';
 
-import LightBulbIcon from './components/icons/LightBulbIcon';
+// Icons
 import InfoIcon from './components/icons/InfoIcon';
 import GridIcon from './components/icons/GridIcon';
 import BrainIcon from './components/icons/BrainIcon';
 import TargetIcon from './components/icons/TargetIcon';
-import PlaybooksPanel from './components/PlaybooksPanel';
-import { playbooks } from './data/playbooks';
-import Stepper from './components/Stepper';
 import UploadIcon from './components/icons/UploadIcon';
-import InputQualityMeter from './components/InputQualityMeter';
-import SuggestionsDashboard from './components/SuggestionsDashboard';
-import ProblemComplexityScorer from './components/ProblemComplexityScorer';
-import Tour from './components/Tour';
-import type { Step } from 'react-joyride';
-import { fetchAISuggestedSolutions } from './services/geminiService';
-import AISuggestions from './components/AISuggestions';
-import type { AISuggestedSolution } from './types';
+import LightBulbIcon from './components/icons/LightBulbIcon';
+
+// Data
+import { playbooks } from './data/playbooks';
 
 const problemPlaceholders = [
   "e.g., Our B2B SaaS startup is struggling with a high customer churn rate, especially within the first 3 months...",
@@ -52,15 +53,6 @@ const ArrowDown: React.FC = () => (
   <div className="flex justify-center items-center my-4">
     <svg width="24" height="48" viewBox="0 0 24 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 0V46M12 46L6 40M12 46L18 40" stroke="#CBD5E1" strokeWidth="2"/>
-    </svg>
-  </div>
-);
-
-// Helper component for drawing horizontal arrows
-const ArrowRight: React.FC = () => (
-  <div className="flex justify-center items-center w-16 mx-4 shrink-0">
-    <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0 12H46M46 12L40 6M46 12L40 18" stroke="#CBD5E1" strokeWidth="2"/>
     </svg>
   </div>
 );
