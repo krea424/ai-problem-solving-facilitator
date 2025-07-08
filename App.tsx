@@ -478,7 +478,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans flex flex-col items-center p-4 sm:p-8">
-       <audio ref={audioRef} src="/tour.mp3" preload="auto" loop onError={(e) => console.log("Audio file not found:", e)} />
+       <audio ref={audioRef} src={`${import.meta.env.BASE_URL}tour.mp3`} preload="auto" loop onError={(e) => console.log("Audio file not found:", e)} />
       <div className="w-full max-w-7xl mx-auto">
         
         {showLandingPage ? (
