@@ -96,6 +96,7 @@ const App: React.FC = () => {
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
+  const [highlightFields, setHighlightFields] = useState(false);
 
   const tourSteps: Step[] = [
     {
@@ -194,11 +195,21 @@ const App: React.FC = () => {
     // Pre-compila Problem e Context con contenuti dal playbook per avviare rapidamente
     setProblem(playbook.objective);
     setContext(playbook.context);
+    setHighlightFields(true);
 
-    // Scorri verso il form per concentrare l'attenzione
+    // Scroll verso i campi con animazione smooth
+    const problemElement = document.getElementById('problem-definition');
+    if (problemElement) {
+      problemElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      });
+    }
+
+    // Rimuovi l'highlight dopo l'animazione
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+      setHighlightFields(false);
+    }, 2000);
   };
 
   const loadSessions = async () => {
@@ -569,7 +580,11 @@ const App: React.FC = () => {
                     value={problem}
                     onChange={(e) => setProblem(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    className={`w-full h-32 p-3 bg-white text-gray-700 rounded-md border transition-all duration-500
+                      ${highlightFields 
+                        ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg transform scale-102' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                      } focus:outline-none`}
                   />
                   <InputQualityMeter text={problem} wordGoal={40} />
                 </Card>
@@ -600,7 +615,11 @@ const App: React.FC = () => {
                     value={context}
                     onChange={(e) => setContext(e.target.value)}
                     placeholder="Provide relevant context (e.g., industry, company size, target audience)..."
-                    className="w-full h-32 p-3 bg-white text-gray-700 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    className={`w-full h-32 p-3 bg-white text-gray-700 rounded-md border transition-all duration-500
+                      ${highlightFields 
+                        ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg transform scale-102' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                      } focus:outline-none`}
                   />
                   <InputQualityMeter text={context} wordGoal={30} />
                 </Card>

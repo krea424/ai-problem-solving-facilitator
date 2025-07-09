@@ -9,6 +9,17 @@ interface PlaybooksPanelProps {
 
 const PlaybooksPanel: React.FC<PlaybooksPanelProps> = ({ playbooks, onSelectPlaybook }) => {
   const [expanded, setExpanded] = useState<boolean>(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handlePlaybookClick = (playbook: Playbook) => {
+    setSelectedId(playbook.id);
+    onSelectPlaybook(playbook);
+    
+    // Reset the selected state after animation
+    setTimeout(() => {
+      setSelectedId(null);
+    }, 1000);
+  };
 
   return (
     <div className="w-full mb-8">
@@ -25,17 +36,23 @@ const PlaybooksPanel: React.FC<PlaybooksPanelProps> = ({ playbooks, onSelectPlay
           {playbooks.map((pb) => (
             <div
               key={pb.id}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow animate-fade-in-up"
+              className={`bg-white border rounded-lg shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-all duration-500 animate-fade-in-up
+                ${selectedId === pb.id 
+                  ? 'border-blue-500 ring-2 ring-blue-200 transform scale-102' 
+                  : 'border-gray-200'}`}
             >
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{pb.name}</h3>
                 <p className="text-sm text-gray-600 mb-4 overflow-hidden text-ellipsis" style={{display:'-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient:'vertical'}}>{pb.description}</p>
               </div>
               <button
-                onClick={() => onSelectPlaybook(pb)}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors active:scale-95"
+                onClick={() => handlePlaybookClick(pb)}
+                className={`mt-4 px-4 py-2 rounded-md font-medium transition-all duration-300 active:scale-95
+                  ${selectedId === pb.id 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'}`}
               >
-                Start Playbook
+                {selectedId === pb.id ? 'Selected!' : 'Start Playbook'}
               </button>
             </div>
           ))}

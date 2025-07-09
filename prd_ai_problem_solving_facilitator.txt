@@ -1,0 +1,138 @@
+Product Requirements Document: AI Problem-Solving Facilitator
+Versione: 1.0
+Data: 2.7.25
+Autore: World-Class Senior Frontend Engineer
+
+1. Introduzione e Scopo
+L'AI Problem-Solving Facilitator è un'applicazione web progettata per guidare gli utenti attraverso un processo strutturato di risoluzione dei problemi. Sfruttando la potenza di Google Gemini, lo strumento aiuta a definire un problema, esplorare quadri strategici, analizzare la situazione con domande mirate e, infine, generare un piano d'azione concreto.
+
+L'obiettivo è trasformare problemi complessi e ambigui in soluzioni chiare e attuabili, democratizzando l'accesso a metodologie di consulenza strategica.
+
+2. Obiettivi di Prodotto
+Obiettivo Principale: Fornire agli utenti un percorso chiaro e assistito per passare dall'identificazione di un problema a una soluzione strategica.
+
+Obiettivi Secondari:
+
+Introdurre e spiegare l'utilità di vari framework di problem-solving (es. Analisi SWOT, Root Cause Analysis).
+
+Accelerare il processo di brainstorming e analisi strategica.
+
+Migliorare la qualità delle soluzioni finali incoraggiando un'analisi approfondita prima di saltare alle conclusioni.
+
+Offrire un'esperienza utente fluida, intuitiva e visivamente accattivante che guidi l'utente in ogni fase.
+
+3. Personas degli Utenti
+Founder di Startup ("Alex"): Deve prendere decisioni rapide su sfide critiche come la perdita di clienti (churn) o la strategia di prodotto. Non ha il budget per consulenti esterni e necessita di un supporto strategico rapido e affidabile.
+
+Product Manager ("Priya"): Gestisce un team e deve prioritizzare le funzionalità o risolvere problemi di adozione da parte degli utenti. Ha bisogno di un modo strutturato per analizzare i dati e il feedback qualitativo per giustificare le decisioni di roadmap.
+
+Analista di Business ("Ben"): È incaricato di indagare su problemi aziendali specifici. Conosce alcuni framework ma cerca uno strumento che lo aiuti ad applicarli in modo sistematico e a generare report conclusivi.
+
+4. Flusso Utente e Funzionalità Principali
+L'applicazione segue un flusso lineare e progressivo in quattro fasi principali.
+
+Fase 1: Definizione del Problema
+
+Descrizione: L'utente inizia descrivendo il problema e fornendo il contesto necessario.
+
+Requisiti Funzionali:
+
+Input "Problem": Un'area di testo per descrivere il problema principale (es. "I clienti abbandonano il nostro servizio dopo il primo mese").
+
+Input "Context": Un'area di testo per fornire dettagli rilevanti (es. "Startup SaaS, B2C, 10.000 utenti attivi").
+
+Pulsante "Generate Suggestions": Avvia il processo di analisi AI. Deve essere disabilitato durante il caricamento per prevenire richieste multiple.
+
+Fase 2: Suggerimenti Iniziali dall'AI
+
+Descrizione: Dopo aver inviato il problema, l'AI restituisce una prima analisi strategica.
+
+Requisiti Funzionali:
+
+Chiamata API (fetchSuggestions): Invia il problema e il contesto a Gemini per ottenere una risposta JSON strutturata.
+
+Visualizzazione dei Risultati: La risposta viene mostrata in tre sezioni distinte:
+
+Suggested Frameworks: Una griglia di 6-8 pulsanti, ognuno rappresentante un framework di analisi (es. "5 Whys", "SWOT Analysis"). L'utente deve poter selezionare uno di questi framework.
+
+Master Strategy: Un elenco puntato di 3-4 approcci strategici di alto livello.
+
+Final Goal: Una dichiarazione chiara e misurabile dell'obiettivo finale.
+
+Gestione degli Stati: L'interfaccia deve mostrare un indicatore di caricamento (Loader) durante l'attesa della risposta e un messaggio di errore chiaro in caso di fallimento della chiamata API.
+
+Fase 3: Analisi Guidata dal Framework
+
+Descrizione: L'utente seleziona un framework e l'applicazione gli fornisce una guida per applicarlo al suo problema specifico.
+
+Requisiti Funzionali:
+
+Selezione del Framework: Al clic su un pulsante framework, questo viene evidenziato come attivo.
+
+Chiamata API (fetchFrameworkGuidance): Invia il problema, il contesto e il framework selezionato a Gemini.
+
+Visualizzazione della Guida: Viene mostrata una nuova sezione (FrameworkGuidance) che contiene:
+
+Un titolo e una descrizione del framework applicato al problema.
+
+Una serie di Key Questions (domande chiave) presentate come un form.
+
+Input Utente: L'utente deve rispondere a ciascuna domanda chiave in apposite aree di testo.
+
+Pulsante "Generate Final Solution": Si attiva solo quando tutte le domande hanno ricevuto una risposta.
+
+Fase 4: Generazione della Soluzione Finale
+
+Descrizione: Sulla base di tutte le informazioni raccolte, l'AI sintetizza e presenta un piano d'azione finale.
+
+Requisiti Funzionali:
+
+Chiamata API (fetchFinalSolution): Invia il problema originale, il contesto, il framework, le domande chiave e le risposte dell'utente a Gemini.
+
+Visualizzazione della Soluzione (FinalSolution): La risposta finale dell'AI viene visualizzata in una scheda strutturata contenente:
+
+Title: Il titolo del piano d'azione.
+
+Summary: Un riassunto esecutivo della soluzione.
+
+Recommendations: Un elenco di 2-4 raccomandazioni specifiche e attuabili, ciascuna con un proprio titolo e dettagli.
+
+Gestione degli Stati: Anche in questa fase sono previsti indicatori di caricamento e messaggi di errore.
+
+5. Requisiti Non Funzionali
+UI/UX Design:
+
+Tema: Dark mode, con un'estetica pulita e professionale. Uso di colori d'accento (blu e viola) per guidare l'attenzione e indicare le azioni.
+
+Layout: Verticale, a singola pagina, che guida l'utente dall'alto verso il basso. L'uso di frecce e animazioni fade-in crea un senso di progressione.
+
+Componenti: Utilizzo di componenti riutilizzabili (Card, Loader) per mantenere la coerenza visiva.
+
+Responsiveness: L'interfaccia deve adattarsi fluidamente a schermi di diverse dimensioni, dal mobile al desktop.
+
+Prestazioni: Le chiamate API devono essere asincrone per non bloccare l'interfaccia. Gli stati di caricamento devono fornire un feedback immediato all'utente.
+
+Accessibilità (A11y): Utilizzo di HTML semantico, attributi ARIA (aria-label) e contrasto di colore sufficiente per garantire l'usabilità per tutti gli utenti.
+
+Manutenibilità: Il codice è strutturato in modo modulare (componenti, servizi, tipi) per facilitare futuri aggiornamenti e manutenzione. La logica di interazione con l'API è isolata nel geminiService.ts.
+
+6. Stack Tecnologico
+Frontend: React (con Hooks), TypeScript
+
+Styling: Tailwind CSS
+
+AI Engine: Google Gemini API (modello gemini-2.5-flash-preview-04-17)
+
+Libreria SDK: @google/genai
+
+Bundling/Runtime: Import Maps in index.html per caricare i moduli ES direttamente nel browser.
+
+7. Potenziali Sviluppi Futuri (Fuori Scopo per la v1.0)
+Autenticazione e Salvataggio Sessioni: Permettere agli utenti di creare un account per salvare e rivedere le loro analisi passate.
+
+Esportazione: Funzionalità per esportare la soluzione finale in formato PDF o Markdown.
+
+Modalità Collaborativa: Consentire a più utenti di lavorare contemporaneamente sullo stesso problema.
+
+Cronologia Chat/Iterazioni: Mantenere una cronologia delle interazioni per poter affinare o modificare le risposte e rigenerare parti della soluzione.
+
